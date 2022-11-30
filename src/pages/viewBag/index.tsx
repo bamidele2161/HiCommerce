@@ -5,7 +5,6 @@ import PrimaryButton from "../../components/button";
 import Navbar from "../../components/navbar";
 import { products } from "../../config/data";
 import { setShowCart } from "../../store/slice";
-import store from "../../store/store";
 import { usePaystackPayment } from "react-paystack";
 import {
   Add,
@@ -41,12 +40,21 @@ type paymentProp = {
   publicKey?: string;
 };
 
+type productProp = {
+  productId?: string;
+  productName?: string;
+  productPrice?: number;
+  productImage?: string;
+  available?: boolean;
+};
 const ViewBag: React.FC<paymentProp> = () => {
   const dispatch = useDispatch();
   const [id, setId] = useState("");
   const [price, setPrice] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [tax, setTax] = useState(42);
+  const [itemContainer, setItemContainer] = useState(0);
+  const [productList, setProductList] = useState<productProp[]>();
   const cartShow = useSelector(
     (store: any) => store.ProductDataReducer.showCart
   );
@@ -57,13 +65,10 @@ const ViewBag: React.FC<paymentProp> = () => {
   const productDataContainer = useSelector(
     (store: any) => store.ProductDataReducer.cartItems
   );
-  useEffect(() => {
-    setId(productDataContainer[0].productId);
-    setPrice(productDataContainer[0].productPrice);
-  }, [productDataContainer]);
+  useEffect(() => {}, [productDataContainer]);
 
-  const paystackAmount = (price * quantity + tax) * 100;
-  const amount = price * quantity + tax;
+  const paystackAmount = (200 * quantity + tax) * 100;
+  // const amount = price * quantity + tax;
   const config = {
     reference: new Date().getTime().toString(),
     email: "akinyemibamidele2@gmail.com.com",
@@ -73,6 +78,7 @@ const ViewBag: React.FC<paymentProp> = () => {
 
   const onSuccess = () => {
     console.log("reference");
+    localStorage.clear();
   };
 
   const onClose = () => {
@@ -81,16 +87,50 @@ const ViewBag: React.FC<paymentProp> = () => {
 
   const initializePayment = usePaystackPayment(config);
 
-  const add = () => {
-    setQuantity(quantity + 1);
-  };
-  const minus = () => {
-    if (quantity == 1) {
-      setQuantity(quantity);
+  useEffect(() => {
+    const localData = localStorage.getItem("cartItems");
+    let newItemContainer = JSON.parse(localData || "[]");
+    setItemContainer(newItemContainer.length);
+  }, []);
+
+  const getDataFromDB = async () => {
+    const localData = localStorage.getItem("cartItems");
+    let newItemContainer = JSON.parse(localData || "[]");
+
+    let productData: productProp[] = []; // initialize an empty array
+
+    if (newItemContainer) {
+      products.forEach((data: any) => {
+        // loop through the object
+        if (newItemContainer.includes(data.productId)) {
+          //if the object includes the Id
+
+          productData.push(data); //push the data inside the empty array
+          return;
+        }
+      });
+      setProductList(productData);
+      // getTotal(productData);
     } else {
-      setQuantity(quantity - 1);
+      // setProduct(false);
+      // getTotal(false);
     }
   };
+
+  useEffect(() => {
+    getDataFromDB();
+  }, []);
+
+  // const add = () => {
+  //   setQuantity(quantity + 1);
+  // };
+  // const minus = () => {
+  //   if (quantity == 1) {
+  //     setQuantity(quantity);
+  //   } else {
+  //     setQuantity(quantity - 1);
+  //   }
+  // };
   return (
     <>
       <Navbar />
@@ -98,39 +138,37 @@ const ViewBag: React.FC<paymentProp> = () => {
         <CartText>cart</CartText>
         <Container>
           <DetailsContainer>
-            {productDataContainer && productDataContainer.length > 0 ? (
+            {itemContainer > 0 ? (
               <>
-                {products
-                  .filter((product) => product.productId === id)
-                  .map((product: any) => {
-                    return (
-                      <ProductContainer>
-                        <p>My bags: {productDataContainer.length} items</p>
-                        {/* <p>{product.productName}</p> */}
-                        <ProductItemContainer>
-                          <ProductItemDetails>
-                            <p>{product.productName}</p>
-                            <PriceText>${product.productPrice}.00</PriceText>
-                            <TitleText>Size:</TitleText>
-                            <TitleText>Color:</TitleText>
-                          </ProductItemDetails>
-                          <ProductLeftDetail>
-                            <ProductUpdate>
-                              <Add onClick={add}>
-                                <Symbol>+</Symbol>
-                              </Add>
-                              {quantity}
-                              <Minus onClick={minus}>
-                                <Symbol>-</Symbol>
-                              </Minus>
-                            </ProductUpdate>
+                {productList?.map((product: any) => {
+                  return (
+                    <ProductContainer>
+                      <p>My bags: {itemContainer} items</p>
+                      {/* <p>{product.productName}</p> */}
+                      <ProductItemContainer>
+                        <ProductItemDetails>
+                          <p>{product.productName}</p>
+                          <PriceText>${product.productPrice}.00</PriceText>
+                          <TitleText>Size:</TitleText>
+                          <TitleText>Color:</TitleText>
+                        </ProductItemDetails>
+                        <ProductLeftDetail>
+                          <ProductUpdate>
+                            <Add>
+                              <Symbol>+</Symbol>
+                            </Add>
+                            {quantity}
+                            <Minus>
+                              <Symbol>-</Symbol>
+                            </Minus>
+                          </ProductUpdate>
 
-                            <Image src={product.productImage} alt="testing" />
-                          </ProductLeftDetail>
-                        </ProductItemContainer>
-                      </ProductContainer>
-                    );
-                  })}
+                          <Image src={product.productImage} alt="testing" />
+                        </ProductLeftDetail>
+                      </ProductItemContainer>
+                    </ProductContainer>
+                  );
+                })}
               </>
             ) : (
               <EmptyContainer>
@@ -139,26 +177,28 @@ const ViewBag: React.FC<paymentProp> = () => {
             )}
           </DetailsContainer>
         </Container>
-        <BottomSection>
-          <TotalWrapper>
-            <TotalText>Tax 21%</TotalText>
-            <TotalPrice>${tax}.00</TotalPrice>
-          </TotalWrapper>
-          <TotalWrapper>
-            <TText>Quantity</TText>
-            <TotalPrice>{quantity}</TotalPrice>
-          </TotalWrapper>
-          <TotalWrapper>
-            <TText>Total</TText>
-            <TotalPrice>${amount}.00</TotalPrice>
-          </TotalWrapper>
-          <ButtonWrapper>
-            <PrimaryButton
-              buttonText="ORDER"
-              onClick={() => initializePayment(onSuccess, onClose)}
-            />
-          </ButtonWrapper>
-        </BottomSection>
+        {itemContainer > 0 && (
+          <BottomSection>
+            <TotalWrapper>
+              <TotalText>Tax 21%</TotalText>
+              <TotalPrice>${tax}.00</TotalPrice>
+            </TotalWrapper>
+            <TotalWrapper>
+              <TText>Quantity</TText>
+              <TotalPrice>{quantity}</TotalPrice>
+            </TotalWrapper>
+            <TotalWrapper>
+              <TText>Total</TText>
+              <TotalPrice>$242.00</TotalPrice>
+            </TotalWrapper>
+            <ButtonWrapper>
+              <PrimaryButton
+                buttonText="ORDER"
+                onClick={() => initializePayment(onSuccess, onClose)}
+              />
+            </ButtonWrapper>
+          </BottomSection>
+        )}
         {cartShow && <BodyOverLay></BodyOverLay>}
       </Body>
     </>

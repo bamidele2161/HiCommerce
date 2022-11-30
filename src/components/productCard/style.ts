@@ -63,3 +63,9 @@ export const OverLayMsg = styled.p`
   align-items: center;
   color: #8d8f9a;
 `;
+
+export const IconWrapper = styled.div`
+  position: absolute;
+  right: 31px;
+  bottom: 72px;
+`;

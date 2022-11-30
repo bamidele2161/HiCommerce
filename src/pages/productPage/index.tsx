@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useParams } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import PrimaryButton from "../../components/button";
 import Navbar from "../../components/navbar";
 import { products } from "../../config/data";
@@ -24,21 +24,59 @@ import { setCartItems } from "../../store/slice";
 import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
 
-const ProductPage = () => {
+type productPageProp = {
+  productId?: string;
+  productName?: string;
+  productPrice?: number;
+  productImage?: string;
+  available?: boolean;
+};
+
+const ProductPage: React.FC<productPageProp> = () => {
   const cartShow = useSelector(
     (store: any) => store.ProductDataReducer.showCart
   );
+  const [productCont, setProductCon] = useState<productPageProp[]>([]);
 
+  const navigate = useNavigate();
   const [items, setItems] = useState([]);
   const { productId } = useParams();
   let newDetail = products.filter((product) => product.productId === productId);
 
-  const addToCart = (product: any) => {
-    let container = [];
-    container.push(product);
-    store.dispatch(setCartItems(container));
-    toast.success("item added successfully");
+  const addToCart = async (productId: any) => {
+    let itemArray = await localStorage.getItem("cartItems");
+    let newItemArray = JSON.parse(itemArray || "[]");
+    console.log(newItemArray);
+
+    if (newItemArray) {
+      if (newItemArray.includes(productId)) {
+        toast.success("item added already");
+        navigate("/products");
+      } else {
+        newItemArray.push(productId);
+        try {
+          await localStorage.setItem("cartItems", JSON.stringify(newItemArray));
+          toast.success("item added successfully");
+          navigate("/products");
+        } catch (error) {
+          return error;
+        }
+      }
+    } else {
+      let array = []; //if the array is empty
+      array.push(productId);
+
+      try {
+        await localStorage.setItem("cartItems", JSON.stringify(array));
+        toast.success("item added successfully");
+        navigate("/products");
+      } catch (error) {
+        return error;
+      }
+    }
   };
+
+  useEffect(() => {}, []);
   return (
     <>
       <Navbar />
@@ -72,7 +110,7 @@ const ProductPage = () => {
             <ProductAmount>${product.productPrice}.00</ProductAmount>
             <PrimaryButton
               buttonText="Add to Cart"
-              onClick={() => addToCart(product)}
+              onClick={() => addToCart(product.productId)}
             />
             <ProductParagraph>
               Find stunning women's cocktail dresses and party dresses. Stand

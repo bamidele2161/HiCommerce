@@ -14,6 +14,7 @@
     "@types/react": "^18.0.25",
     "@types/react-dom": "^18.0.9",
     "@types/react-redux": "^7.1.24",
+    "@types/reactjs-localstorage": "^1.0.0",
     "@types/styled-components": "^5.1.26",
     "numeral": "^2.0.6",
     "react": "^18.2.0",
@@ -23,6 +24,7 @@
     "react-redux": "^8.0.5",
     "react-router-dom": "^6.4.3",
     "react-scripts": "5.0.1",
+    "reactjs-localstorage": "^1.0.1",
     "styled-components": "^5.3.6",
     "typescript": "^4.9.3",
     "web-vitals": "^2.1.4"

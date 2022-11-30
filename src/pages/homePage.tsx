@@ -8,15 +8,10 @@ import ProductLayout from "../layouts/productContainer";
 import { BodyContainer, BodyOverLay, BodyTitle } from "./style";
 
 const HomePage: React.FC = () => {
-  const productDataContainer = useSelector(
-    (store: any) => store.ProductDataReducer.cartItems
-  );
-
   const cartShow = useSelector(
     (store: any) => store.ProductDataReducer.showCart
   );
 
-  console.log("data fetched", productDataContainer);
   const navigate = useNavigate();
   const handleClick = (productId: string, available: boolean) => {
     if (available === true) {
@@ -33,6 +28,7 @@ const HomePage: React.FC = () => {
             return (
               <div key={product.productId}>
                 <ProductCard
+                  id={product.productId}
                   title={product.productName}
                   price={product.productPrice}
                   image={product.productImage}

@@ -35,7 +35,7 @@ const AppRouter = () => {
               fontSize: "14px",
               zIndex: 999999,
             },
-            duration: 4000,
+            duration: 3000,
             error: {
               style: {
                 background: "#ff6363",

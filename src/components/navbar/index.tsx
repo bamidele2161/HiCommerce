@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import {
   CartIconContainer,
@@ -22,6 +22,7 @@ import CartContainer from "../cart";
 
 const Navbar = () => {
   const dispatch = useDispatch();
+  const [itemContainer, setItemContainer] = useState(0);
   const cartShow = useSelector(
     (store: any) => store.ProductDataReducer.showCart
   );
@@ -29,10 +30,12 @@ const Navbar = () => {
     dispatch(setShowCart());
   };
 
-  console.log("testing toggle ", cartShow);
-  const productDataContainer = useSelector(
-    (store: any) => store.ProductDataReducer.cartItems
-  );
+  const localData = localStorage.getItem("cartItems");
+  let newItemContainer = JSON.parse(localData || "[]");
+
+  useEffect(() => {
+    setItemContainer(newItemContainer.length);
+  }, [newItemContainer]);
 
   const ActiveStyle = {
     textDecoration: "none",
@@ -72,9 +75,9 @@ const Navbar = () => {
         </DropIcon>
         <CartIconContainer onClick={handleToggle}>
           <CartIcon />
-          {productDataContainer && productDataContainer.length > 0 && (
+          {itemContainer > 0 && (
             <LengthContainer>
-              <Length>{productDataContainer.length}</Length>
+              <Length>{itemContainer}</Length>
             </LengthContainer>
           )}
         </CartIconContainer>

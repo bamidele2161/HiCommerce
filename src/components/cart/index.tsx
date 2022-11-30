@@ -26,91 +26,156 @@ import {
   TotalWrapper,
 } from "./style";
 
-const CartContainer = () => {
+type productProp = {
+  productId?: string;
+  productName?: string;
+  productPrice?: number;
+  productImage?: string;
+  available?: boolean;
+};
+
+type productPrice = {
+  productPrice?: number;
+};
+const CartContainer: React.FC<productProp> = () => {
   const dispatch = useDispatch();
   const [id, setId] = useState("");
-  const [price, setPrice] = useState(0);
+  const [price, setPrice] = useState<productPrice[]>();
+  const [total, setTotal] = useState();
   const [quantity, setQuantity] = useState(1);
+  const [itemContainer, setItemContainer] = useState(0);
+  const [productList, setProductList] = useState<productProp[]>();
 
   const cartShow = useSelector(
     (store: any) => store.ProductDataReducer.showCart
   );
-  const handleToggle = () => {
-    dispatch(setShowCart());
-  };
 
   const navigate = useNavigate();
   const productDataContainer = useSelector(
     (store: any) => store.ProductDataReducer.cartItems
   );
   useEffect(() => {
-    setId(productDataContainer[0].productId);
-    setPrice(productDataContainer[0].productPrice);
+    // setId(productList.productId);
+    // setPrice(productList.productPrice);
   }, [productDataContainer]);
 
   const viewBag = () => {
     navigate("/view-bag");
   };
-  const add = () => {
-    setQuantity(quantity + 1);
-  };
-  const minus = () => {
-    if (quantity == 1) {
-      setQuantity(quantity);
+  // const add = () => {
+  //   setQuantity(quantity + 1);
+  // };
+  // const minus = () => {
+  //   if (quantity == 1) {
+  //     setQuantity(quantity);
+  //   } else {
+  //     setQuantity(quantity - 1);
+  //   }
+  // };
+
+  useEffect(() => {
+    const localData = localStorage.getItem("cartItems");
+    let newItemContainer = JSON.parse(localData || "[]");
+    setItemContainer(newItemContainer.length);
+  }, []);
+
+  const getDataFromDB = async () => {
+    const localData = localStorage.getItem("cartItems");
+    let newItemContainer = JSON.parse(localData || "[]");
+
+    let productData: productProp[] = []; // initialize an empty array
+    let productPrice: any[] = [];
+    console.log(typeof productPrice);
+
+    if (newItemContainer) {
+      products.forEach((data: any) => {
+        // loop through the object
+        if (newItemContainer.includes(data.productId)) {
+          //if the object includes the Id
+          productData.push(data); //push the data inside the empty array
+          // productPrice.push({ productPrice: 4647 });
+
+          return;
+        }
+      });
+      console.log(typeof productPrice);
+      setProductList(productData);
+      setPrice(productPrice);
+
+      // getTotal(productData);
     } else {
-      setQuantity(quantity - 1);
+      // setProduct(false);
+      // getTotal(false);
     }
   };
 
-  const total = quantity * price;
+  // console.log("price", typeof price);
+  // const sum = () => {
+  //   let sum = 0;
+  //   for (let i = 0; i < price.length; i++) {
+  //     sum = sum + price[i];
+  //   }
+  //   return sum;
+  // };
+  useEffect(() => {
+    getDataFromDB();
+    let sum = price?.reduce((a: any, b: any) => {
+      return a + b;
+    });
+    console.log("sum", sum);
+  }, []);
+
+  // const total = quantity * price;
   return (
     <Container>
       <DetailsContainer>
-        {productDataContainer && productDataContainer.length > 0 ? (
+        {itemContainer > 0 ? (
           <>
-            {products
-              .filter((product) => product.productId === id)
-              .map((product: any) => {
-                return (
-                  <ProductContainer>
-                    <p>My bags: {productDataContainer.length} items</p>
-                    {/* <p>{product.productName}</p> */}
-                    <ProductItemContainer>
-                      <ProductItemDetails>
-                        <p>{product.productName}</p>
-                        <PriceText>${product.productPrice}.00</PriceText>
-                        <TitleText>Size:</TitleText>
-                        <TitleText>Color:</TitleText>
-                      </ProductItemDetails>
-                      <ProductUpdate>
-                        <Add onClick={add}>
-                          <Symbol>+</Symbol>
-                        </Add>
-                        {quantity}
-                        <Minus onClick={minus}>
-                          <Symbol>-</Symbol>
-                        </Minus>
-                      </ProductUpdate>
-                      {/* <ProductImage> */}
-                      <Image src={product.productImage} alt="testing" />
-                      {/* </ProductImage> */}
-                    </ProductItemContainer>
-                    <TotalWrapper>
-                      <TotalText>Total</TotalText>
-                      <TotalPrice>${total}.00</TotalPrice>
-                    </TotalWrapper>
-                    <ButtonWrapper>
-                      <PrimaryButton buttonText="VIEW BAG" onClick={viewBag} />
-                      <PrimaryButton buttonText="CHECK OUT" onClick={viewBag} />
-                    </ButtonWrapper>
-                  </ProductContainer>
-                );
-              })}
+            {productList?.map((product: any) => {
+              return (
+                <ProductContainer>
+                  <p>My bags: {itemContainer} items</p>
+                  {/* <p>{product.productName}</p> */}
+                  <ProductItemContainer>
+                    <ProductItemDetails>
+                      <p>{product.productName}</p>
+                      <PriceText>${product.productPrice}.00</PriceText>
+                      <TitleText>Size:</TitleText>
+                      <TitleText>Color:</TitleText>
+                    </ProductItemDetails>
+                    <ProductUpdate>
+                      <Add>
+                        <Symbol>+</Symbol>
+                      </Add>
+                      {quantity}
+                      <Minus>
+                        <Symbol>-</Symbol>
+                      </Minus>
+                    </ProductUpdate>
+                    {/* <ProductImage> */}
+                    <Image src={product.productImage} alt="testing" />
+                    {/* </ProductImage> */}
+                  </ProductItemContainer>
+                </ProductContainer>
+              );
+            })}
           </>
         ) : (
           <EmptyContainer>
             <EmptyMsg>Your Cart is Empty</EmptyMsg>
           </EmptyContainer>
+        )}
+        {itemContainer > 0 && (
+          <>
+            <TotalWrapper>
+              <TotalText>Total</TotalText>
+              <TotalPrice>$200.00</TotalPrice>
+            </TotalWrapper>
+            <ButtonWrapper>
+              <PrimaryButton buttonText="VIEW BAG" onClick={viewBag} />
+              <PrimaryButton buttonText="CHECK OUT" onClick={viewBag} />
+            </ButtonWrapper>
+          </>
         )}
       </DetailsContainer>
     </Container>

@@ -27,7 +27,7 @@ export const EmptyContainer = styled.div`
 export const EmptyMsg = styled.p`
   font-weight: 600;
   color: black;
-  font-size: 18px;
+  font-size: 24px;
 `;
 
 export const ProductItemContainer = styled.div`
